@@ -38,7 +38,7 @@ export const authOptions = {
 
           // Check for super admin
           const [superAdmin] = await executeQuery(
-            'SELECT * FROM SuperAdmins WHERE email = ?',
+            'SELECT * FROM SuperAdmin WHERE email = ?',
             [user.email]
           );
 
@@ -49,7 +49,7 @@ export const authOptions = {
 
           // Check for student
           const [student] = await executeQuery(
-            'SELECT student_id, full_name FROM Students WHERE email = ?',
+            'SELECT student_id, roll_number, full_name FROM Students WHERE email = ?',
             [user.email]
           );
 
@@ -57,6 +57,7 @@ export const authOptions = {
             user.role = 'student';
             user.id = student.student_id;
             user.name = student.full_name;
+            user.roll_number = student.roll_number;
             return true;
           }
 
@@ -78,6 +79,10 @@ export const authOptions = {
         // Transfer the role and id from signIn callback
         token.role = user.role;
         token.id = user.id;
+        // Add roll_number to token if user is a student
+        if (user.role === 'student') {
+          token.roll_number = user.roll_number;
+        }
       }
 
       console.log('JWT Callback - Outgoing token:', token);
@@ -91,6 +96,10 @@ export const authOptions = {
       if (token) {
         session.user.role = token.role;
         session.user.id = token.id;
+        // Add roll_number to session if user is a student
+        if (token.role === 'student') {
+          session.user.roll_number = token.roll_number;
+        }
       }
 
       console.log('Session Callback - Outgoing session:', session);
