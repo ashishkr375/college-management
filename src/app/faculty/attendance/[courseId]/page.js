@@ -90,7 +90,7 @@ export default function AttendancePage() {
       // Initialize attendance
       const initialAttendance = {};
       data.forEach(student => {
-        initialAttendance[student.roll_number] = 'Present';
+        initialAttendance[student.roll_number] = '1';
       });
       setAttendance(initialAttendance);
     } catch (error) {
@@ -111,7 +111,7 @@ export default function AttendancePage() {
       console.log('Fetching attendance for date:', formattedDate);
       
       const response = await fetch(
-        `/api/faculty/attendance?courseId=${params.courseId}&date=${formattedDate}`
+        `/api/faculty/attendance?faculty_course_id=${params.courseId}&date=${formattedDate}`
       );
       
       if (!response.ok) {
@@ -126,7 +126,7 @@ export default function AttendancePage() {
         // Update attendance state with fetched data
         const attendanceMap = {};
         data.forEach(record => {
-          attendanceMap[record.roll_number] = record.status;
+            attendanceMap[record.roll_number] = String(record.status);
         });
         setAttendance(attendanceMap);
         setSelectedDate(formattedDate);
@@ -135,7 +135,7 @@ export default function AttendancePage() {
         // If no attendance found for selected date, reset to default
         const initialAttendance = {};
         students.forEach(student => {
-          initialAttendance[student.roll_number] = 'Present';
+          initialAttendance[student.roll_number] = '1';
         });
         setAttendance(initialAttendance);
         setSelectedDate(null);
@@ -153,7 +153,7 @@ export default function AttendancePage() {
 
   async function fetchAttendanceDates() {
     try {
-      const response = await fetch(`/api/faculty/attendance/dates?courseId=${params.courseId}`);
+      const response = await fetch(`/api/faculty/attendance/dates?faculty_course_id=${params.courseId}`);
       if (!response.ok) throw new Error('Failed to fetch attendance dates');
       const data = await response.json();
       setAttendanceDates(data);
@@ -175,16 +175,18 @@ export default function AttendancePage() {
       // Create attendance data array
       const attendanceData = Object.entries(attendance).map(([roll_number, status]) => ({
         roll_number,
-        status
+       status
       }));
 
       const response = await fetch('/api/faculty/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          courseId: params.courseId,
+          faculty_course_id: params.courseId,
           attendance: attendanceData,
-          date: formattedDate
+          start_date:new Date().toISOString().split('T')[0],
+          end_date:new Date().toISOString().split('T')[0],
+          total_classes:1,
         }),
       });
 
@@ -234,7 +236,7 @@ export default function AttendancePage() {
       setIsEditing(false);
       const initialAttendance = {};
       students.forEach(student => {
-        initialAttendance[student.roll_number] = 'Present';
+        initialAttendance[student.roll_number] = '1';
       });
       setAttendance(initialAttendance);
       setIsDateDialogOpen(false);
@@ -489,21 +491,21 @@ export default function AttendancePage() {
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem 
-                              value="Present" 
+                              value="1" 
                               id={`present-${student.roll_number}`} 
                             />
                             <Label htmlFor={`present-${student.roll_number}`}>Present</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem 
-                              value="Absent" 
+                              value="-1" 
                               id={`absent-${student.roll_number}`} 
                             />
                             <Label htmlFor={`absent-${student.roll_number}`}>Absent</Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem 
-                              value="On Leave" 
+                              value="0" 
                               id={`leave-${student.roll_number}`} 
                             />
                             <Label htmlFor={`leave-${student.roll_number}`}>On Leave</Label>
@@ -558,20 +560,24 @@ export default function AttendancePage() {
 <div className="mt-8">
               <h2 className="text-xl font-semibold mb-4">Previous Attendance Records</h2>
               <div className="grid grid-cols-4 gap-4">
-                {attendanceDates.map((record) => (
-                  <Button
-                    key={record.date}
-                    variant="outline"
-                    className={selectedDate === record.date ? 'border-primary' : ''}
-                    onClick={() => {
-                      setDate(new Date(record.date));
-                      setSelectedDate(record.date);
-                      setIsEditing(false);
-                    }}
-                  >
-                    {format(new Date(record.date), 'dd MMM yyyy')}
-                  </Button>
-                ))}
+              {attendanceDates.map((record, index) => (
+                <Button
+                  key={`${record.start_date}-${index}`}
+                  variant="outline"
+                  className={selectedDate === record.start_date ? 'border-primary' : ''}
+                  onClick={() => {
+                    setDate(new Date(record.start_date));
+                    setSelectedDate(record.start_date);
+                    setIsEditing(false);
+                  }}
+                >
+                  {new Date(record.start_date).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </Button>
+              ))}
               </div>
             </div>
           </div>

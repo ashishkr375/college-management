@@ -30,7 +30,7 @@ export const authOptions = {
 
           if (faculty) {
             // Store these in user object for jwt callback
-            user.role = faculty.is_dept_admin ? 'dept_admin' : 'faculty';
+            user.role = faculty.is_dept_admin === 1 ? 'dept_admin' : 'faculty';
             user.id = faculty.faculty_id;
             user.name = faculty.full_name;
             return true;

@@ -13,10 +13,10 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const facultyCourseId = searchParams.get('courseId');
-    const date = searchParams.get('date');
+    const facultyCourseId = searchParams.get('faculty_course_id');
+    const start_date = searchParams.get('date');
 
-    if (!facultyCourseId || !date) {
+    if (!facultyCourseId || !start_date) {
       return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -43,12 +43,11 @@ export async function GET(request) {
     const courseCode = courseResult[0].course_code;
 
     const attendance = await executeQuery(`
-      SELECT roll_number, status
+      SELECT roll_number, present_count as status
       FROM Attendance
-      WHERE course_code = ?
-      AND date = ?
-      AND marked_by = ?
-    `, [courseCode, date, session.user.id]);
+      WHERE faculty_course_id = ?
+      AND start_date = ?
+    `, [facultyCourseId, start_date]);
 
     return new Response(JSON.stringify(attendance), {
       status: 200,
@@ -73,18 +72,17 @@ export async function POST(request) {
       });
     }
 
-    const { courseId: facultyCourseId, attendance, date } = await request.json();
+    const { faculty_course_id, attendance, start_date, end_date, total_classes } = await request.json();
 
-    // Get course_code for the faculty_course_id
+    // Get course_id for the faculty_course_id
     const courseQuery = `
-      SELECT c.course_code
-      FROM FacultyCourses fc
-      JOIN Courses c ON fc.course_id = c.course_id
-      WHERE fc.faculty_course_id = ?
-      AND fc.faculty_id = ?
+      SELECT course_id 
+      FROM FacultyCourses 
+      WHERE faculty_course_id = ? 
+      AND faculty_id = ?
     `;
-    const courseResult = await executeQuery(courseQuery, [facultyCourseId, session.user.id]);
-    
+    const courseResult = await executeQuery(courseQuery, [faculty_course_id, session.user.id]);
+
     if (courseResult.length === 0) {
       return new Response(JSON.stringify({ error: 'Course not found' }), {
         status: 404,
@@ -92,36 +90,40 @@ export async function POST(request) {
       });
     }
 
-    const courseCode = courseResult[0].course_code;
+    const course_id = courseResult[0].course_id;
 
     // Start transaction
     await executeQuery('START TRANSACTION');
 
     try {
-      // Delete existing records
+      // Delete existing attendance records for the given period
       await executeQuery(`
         DELETE FROM Attendance 
-        WHERE course_code = ? 
-        AND date = ?
-        AND marked_by = ?
-      `, [courseCode, date, session.user.id]);
+        WHERE faculty_course_id = ? 
+        AND start_date = ? 
+        AND end_date = ?
+      `, [faculty_course_id, start_date, end_date]);
 
-      // Insert new records
+      // Insert new attendance records
       for (const record of attendance) {
         await executeQuery(`
           INSERT INTO Attendance (
             roll_number,
-            course_code,
-            date,
-            status,
-            marked_by
-          ) VALUES (?, ?, ?, ?, ?)
+            course_id,
+            start_date,
+            end_date,
+            total_classes,
+            present_count,
+            faculty_course_id
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `, [
           record.roll_number,
-          courseCode,
-          date,
-          record.status,
-          session.user.id
+          course_id,
+          start_date,
+          end_date,
+          total_classes,
+          parseInt(record.status),  // Assuming 1 for present, 0 for absent
+          faculty_course_id
         ]);
       }
 
@@ -130,7 +132,8 @@ export async function POST(request) {
 
       return new Response(JSON.stringify({ 
         message: 'Attendance saved successfully',
-        savedDate: date
+        start_date,
+        end_date
       }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -147,4 +150,4 @@ export async function POST(request) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-} 
+}

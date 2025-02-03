@@ -140,21 +140,31 @@ async function createTables() {
         FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id),
         FOREIGN KEY (course_id) REFERENCES Courses(course_id)
       )`,
-
-      // Attendance table
       `CREATE TABLE Attendance (
         attendance_id INT PRIMARY KEY AUTO_INCREMENT,
         roll_number VARCHAR(20) NOT NULL,
-        course_code VARCHAR(20) NOT NULL,
-        date DATE NOT NULL,
-        status ENUM('Present', 'Absent', 'On Leave') NOT NULL,
-        marked_by INT NOT NULL,
+        course_id int NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,  
+        total_classes INT NOT NULL,
+        present_count INT NOT NULL,
+        faculty_course_id INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_attendance (roll_number, course_code, date),
+        remark VARCHAR(255) DEFAULT NULL,
+        flag INT DEFAULT 1,
         FOREIGN KEY (roll_number) REFERENCES Students(roll_number),
-        FOREIGN KEY (course_code) REFERENCES Courses(course_code),
-        FOREIGN KEY (marked_by) REFERENCES Faculty(faculty_id)
-      );`
+        FOREIGN KEY (course_id) REFERENCES Courses(course_id),
+        FOREIGN KEY (faculty_course_id) REFERENCES FacultyCourses(faculty_course_id)
+      )`,
+
+      `CREATE TABLE FacultySchedule (
+        schedule_id INT PRIMARY KEY AUTO_INCREMENT,
+        faculty_course_id INT NOT NULL,
+        schedule_date DATE NOT NULL,
+        schedule_time TIME NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (faculty_course_id) REFERENCES FacultyCourses(faculty_course_id)
+    )`,
 
       // Marks table
       `CREATE TABLE Marks (
@@ -184,6 +194,9 @@ async function createTables() {
       `INSERT INTO SuperAdmin (admin_id, full_name, email) 
        VALUES ('SA001', 'Super Admin', 'ashishk.dd22.cs@nitp.ac.in')`,
 
+      `INSERT INTO SuperAdmin (admin_id, full_name, email) 
+       VALUES ('SA002', 'Super Admin', 'aashishs.ug23.cs@nitp.ac.in')`,
+
       // Insert department
       `INSERT INTO Departments (dept_name) 
        VALUES ('Computer Science')`,
@@ -195,7 +208,6 @@ async function createTables() {
       // Insert regular faculty member
       `INSERT INTO Faculty (employee_id, full_name, email, dept_id, is_dept_admin) 
        VALUES ('CSE002', 'Faculty User', 'kumarashish80832@gmail.com', 1, 0)`,
-
 
       // Insert a programme
       `INSERT INTO Programmes (programme_name, level, dept_id) 
@@ -229,4 +241,4 @@ async function createTables() {
   }
 }
 
-createTables(); 
+createTables();
