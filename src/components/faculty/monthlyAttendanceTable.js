@@ -19,7 +19,7 @@ const MonthlyAttendanceTable = ({ students, totalClasses }) => {
           {students.map((student, index) => {
             const totalPresent = student.totalPresent;
             const absent = totalClasses - totalPresent;
-            const remark = 
+            const remark = student.remark;
 
             return (
               <tr key={index} className="border-b">
