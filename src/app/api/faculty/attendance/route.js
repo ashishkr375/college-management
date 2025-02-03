@@ -43,12 +43,12 @@ export async function GET(request) {
     const courseCode = courseResult[0].course_code;
 
     const attendance = await executeQuery(`
-      SELECT roll_number, present_count as status
+      SELECT roll_number, present_count as status,end_date
       FROM Attendance
       WHERE faculty_course_id = ?
       AND start_date = ?
     `, [facultyCourseId, start_date]);
-
+      
     return new Response(JSON.stringify(attendance), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

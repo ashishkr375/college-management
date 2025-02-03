@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { FacultyNavigation } from '@/components/faculty-navigation';
+import MonthlyAttendanceTable from '@/components/faculty/monthlyAttendanceTable';
 
 export default function AttendancePage() {
   const params = useParams();
@@ -583,7 +584,7 @@ export default function AttendancePage() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex flex-col gap-4">
+            {/* <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center">
                 <Label>Upload CSV File</Label>
                 <Button variant="outline" onClick={downloadSampleCSV}>
@@ -599,8 +600,8 @@ export default function AttendancePage() {
               <p className="text-sm text-muted-foreground">
                 CSV Format: roll_number,date,status (Present/Absent/On Leave)
               </p>
-            </div>
-            <Button 
+            </div> */}
+            {/* <Button 
               disabled={!csvFile || isUploading} 
               onClick={handleCSVUpload}
             >
@@ -612,9 +613,11 @@ export default function AttendancePage() {
               ) : (
                 'Upload'
               )}
-            </Button>
+            </Button> */}
+            <MonthlyAttendanceTable students={students} />
           </div>
         )}
+        
       </div>
     </div>
   );
