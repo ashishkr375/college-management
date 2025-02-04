@@ -202,10 +202,7 @@ async function createTables() {
     const initialDataQueries = [
       // Insert Super Admin
       `INSERT INTO SuperAdmin (admin_id, full_name, email) 
-       VALUES ('SA001', 'Super Admin', 'ashishk.dd22.cs@nitp.ac.in')`,
-
-      `INSERT INTO SuperAdmin (admin_id, full_name, email) 
-       VALUES ('SA002', 'Super Admin', 'aashishs.ug23.cs@nitp.ac.in')`,
+       VALUES ('SA001', 'VASU CHOUDHARI', 'vasuc.ug23.cs@nitp.ac.in')`,
 
       // Insert department
       `INSERT INTO Departments (dept_name) 
@@ -233,7 +230,7 @@ async function createTables() {
 
       // Insert a student
       `INSERT INTO Students (roll_number, full_name, email, section_id) 
-       VALUES ('2022CSB001', 'Student User', 'araash375@gmail.com', 1)`
+       VALUES ('2022CSB001', 'student123', 'vasu123@gmail.com', 1)`
     ];
 
     // Execute each INSERT query separately

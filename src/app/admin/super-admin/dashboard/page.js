@@ -22,9 +22,12 @@ import StudentGrowth from '@/components/charts/StudentGrowth';
 import { fetchDashboardStats } from '@/lib/data';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { log } from 'console';
 
 export default async function SuperAdminDashboard() {
   const session = await getServerSession(authOptions);
+  console.log(session);
+  console.log(session.user.role);
   
   if (!session) {
     redirect('/api/auth/signin');

@@ -11,6 +11,9 @@ export default function MaterialsPage({ params }) {
   const [description, setDescription] = useState('');
   const [materialType, setMaterialType] = useState('Syllabus');
 
+  // console.log(session);
+  
+
   const materialTypes = [
     'Syllabus',
     'Question',
@@ -48,7 +51,7 @@ export default function MaterialsPage({ params }) {
     formData.append('courseId', params.courseId);
 
     try {
-      const response = await fetch('/api/faculty/materials', {
+      const response = await fetch(`/api/faculty/materials?destination=./uploads/${session.user.id}/${params.courseId}/${materialType}`, {
         method: 'POST',
         body: formData
       });
@@ -89,7 +92,7 @@ export default function MaterialsPage({ params }) {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Course Materials</h1>
 
-      <form onSubmit={handleSubmit} className="mb-8 p-4 border rounded">
+      <form onSubmit={handleSubmit} className="mb-8 p-4 border rounded" encType="multipart/form-data">
         <div className="grid gap-4">
           <div>
             <label className="block mb-1">Material Type</label>
@@ -147,7 +150,8 @@ export default function MaterialsPage({ params }) {
             </div>
             <div className="flex gap-2">
               <a
-                href={material.file_url}
+                download
+                href={'/api/files/' + material.material_id}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
