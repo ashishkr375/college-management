@@ -15,29 +15,35 @@ export async function GET(request, { params }) {
 
     // Get attendance records
     const recordsQuery = `
-      SELECT attendance_id, date, status
+      SELECT 
+        attendance_id, 
+        start_date, 
+        end_date, 
+        total_classes, 
+        present_count, 
+        remark 
       FROM Attendance
-      WHERE student_id = ? AND course_id = ?
-      ORDER BY date DESC
+      WHERE roll_number = ? AND faculty_course_id = ?
+      ORDER BY start_date DESC
     `;
 
-    const records = await executeQuery(recordsQuery, [session.user.id, params.courseId]);
+    const records = await executeQuery(recordsQuery, [session.user.roll_number, params.courseId]);
 
     // Calculate summary
     const summaryQuery = `
       SELECT 
-        COUNT(*) as total,
-        SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present
+        SUM(total_classes) as total_classes,
+        SUM(CASE WHEN present_count >= 0 THEN present_count ELSE 0 END) as present_count
       FROM Attendance
-      WHERE student_id = ? AND course_id = ?
+      WHERE roll_number = ? AND faculty_course_id = ?
     `;
 
-    const [summaryData] = await executeQuery(summaryQuery, [session.user.id, params.courseId]);
-    
+    const [summaryData] = await executeQuery(summaryQuery, [session.user.roll_number, params.courseId]);
+
     const summary = {
-      total: summaryData.total || 0,
-      present: summaryData.present || 0,
-      percentage: summaryData.total ? (summaryData.present / summaryData.total) * 100 : 0
+      total: summaryData.total_classes || 0,
+      present: summaryData.present_count || 0,
+      percentage: summaryData.total_classes ? (summaryData.present_count / summaryData.total_classes) * 100 : 0
     };
 
     return new Response(JSON.stringify({ records, summary }), {
@@ -50,4 +56,4 @@ export async function GET(request, { params }) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-} 
+}

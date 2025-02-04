@@ -14,26 +14,25 @@ export async function GET(request) {
 
     const summary = await executeQuery(`
       SELECT 
-        c.course_code,
-        c.course_name,
-        COUNT(DISTINCT a.date) as total_classes,
-        SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) as present,
-        SUM(CASE WHEN a.status = 'Absent' THEN 1 ELSE 0 END) as absent,
-        SUM(CASE WHEN a.status = 'On Leave' THEN 1 ELSE 0 END) as \`leave\`,
-        ROUND(
-          (SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) * 100.0) / 
-          NULLIF(COUNT(DISTINCT a.date), 0)
-        ) as percentage
+          c.course_id,
+          c.course_name, 
+          c.course_code,
+          SUM(a.total_classes) AS total_classes,
+          SUM(CASE WHEN a.present_count >= 0 THEN a.present_count ELSE 0 END) AS present,
+          (SUM(a.total_classes) - SUM(CASE WHEN a.present_count >= 0 THEN a.present_count ELSE 0 END)) AS absent,
+          ROUND(
+            (SUM(CASE WHEN a.present_count >= 0 THEN a.present_count ELSE 0 END) * 100.0) / 
+            NULLIF(SUM(a.total_classes), 0)
+          ) AS percentage
       FROM Students s
-      JOIN Sections sec ON s.section_id = sec.section_id
-      JOIN FacultyCourses fc ON sec.section_id = fc.section_id
+      JOIN FacultyCourses fc ON s.section_id = fc.section_id
       JOIN Courses c ON fc.course_id = c.course_id
       LEFT JOIN Attendance a ON a.roll_number = s.roll_number 
-        AND a.course_code = c.course_code
+          AND a.faculty_course_id = fc.faculty_course_id
       WHERE s.roll_number = ?
-      GROUP BY c.course_code, c.course_name
+      GROUP BY c.course_id, c.course_name
       ORDER BY c.course_name
-    `, [session.user.roll_number]);
+  `, [session.user.roll_number]);
 
     return new Response(JSON.stringify(summary), {
       status: 200,

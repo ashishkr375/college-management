@@ -12,26 +12,27 @@ export async function GET(request, { params }) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-
+    const courseCode = await executeQuery(`SELECT course_code FROM Courses WHERE course_id = ?`, [params.courseId]);
     // Get marks with assessment weights
     const query = `
-      SELECT 
+    SELECT 
         m.mark_id,
         m.assessment_type,
-        m.score,
+        m.marks AS score,
         CASE 
-          WHEN m.assessment_type = 'Mid Sem' THEN 30
-          WHEN m.assessment_type = 'Class Test' THEN 20
-          WHEN m.assessment_type = 'Assignment' THEN 10
-          WHEN m.assessment_type = 'Lab Internal' THEN 25
-          WHEN m.assessment_type = 'Lab External' THEN 15
-        END as weight
-      FROM Marks m
-      WHERE m.student_id = ? AND m.course_id = ?
-      ORDER BY m.assessment_type
-    `;
+            WHEN m.assessment_type = 'Mid Sem' THEN 30
+            WHEN m.assessment_type = 'Class Test' THEN 20
+            WHEN m.assessment_type = 'Assignment' THEN 10
+            WHEN m.assessment_type = 'Lab Internal' THEN 25
+            WHEN m.assessment_type = 'Lab External' THEN 15
+            ELSE 0  -- Handles unexpected assessment types
+        END AS weight
+    FROM Marks m
+    WHERE m.roll_number = ? AND m.course_code = ?
+    ORDER BY m.assessment_type
+`;
 
-    const marks = await executeQuery(query, [session.user.id, params.courseId]);
+    const marks = await executeQuery(query, [session.user.roll_number,courseCode[0].course_code]);
 
     // Calculate total weighted score
     const total = marks.reduce((sum, mark) => {

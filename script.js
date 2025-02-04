@@ -28,6 +28,7 @@ async function createTables() {
       'Faculty',
       'Departments',
       'SuperAdmin'
+      // "Auth"
     ];
 
     for (const table of tablesToDrop) {
@@ -37,6 +38,15 @@ async function createTables() {
 
     // Create tables in order of dependencies
     const createTableQueries = [
+
+      // Auth table
+      // `CREATE TABLE Auth (
+      //   id INT PRIMARY KEY AUTO_INCREMENT,
+      //   email VARCHAR(100) UNIQUE NOT NULL,
+      //   password VARCHAR(255) NOT NULL,
+      //   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      // )`
+
       // SuperAdmin table
       `CREATE TABLE SuperAdmin (
         id INT PRIMARY KEY AUTO_INCREMENT,

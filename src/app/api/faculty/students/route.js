@@ -19,7 +19,7 @@ export async function GET(request) {
     const facultyCourseId = searchParams.get('courseId');
 
     if (!facultyCourseId) {
-      return new Response(JSON.stringify({ error: 'Course ID is required' }), {
+      return new Response(JSON.stringify({ error: 'Faculty Course ID is required' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -41,7 +41,12 @@ export async function GET(request) {
       JOIN FacultyCourses fc ON sec.section_id = fc.section_id
       WHERE fc.faculty_course_id = ?
       AND fc.faculty_id = ?
-      ORDER BY s.roll_number
+      ORDER BY 
+      CASE 
+        WHEN s.roll_number REGEXP '^[0-9]+$' THEN CAST(s.roll_number AS UNSIGNED)
+        ELSE NULL
+      END,
+      s.roll_number
     `, [facultyCourseId, session.user.id]);
 
     //console.log('Found students:', students);

@@ -18,8 +18,8 @@ export default function StudentMarksPage({ params }) {
     try {
       const response = await fetch(`/api/student/marks/${params.courseId}`);
       const data = await response.json();
-      setMarks(data.marks);
-      setTotal(data.total);
+      setMarks(data.marks || []);
+      setTotal(data.total || 0);
     } catch (error) {
       console.error('Error fetching marks:', error);
     }
@@ -31,7 +31,7 @@ export default function StudentMarksPage({ params }) {
 
       <div className="mb-6 p-4 bg-gray-100 rounded">
         <h3 className="font-semibold">Total Score</h3>
-        <p className="text-2xl">{total.toFixed(2)}/100</p>
+        <p className="text-2xl">{parseFloat(total)?.toFixed(2)}/100</p>
       </div>
 
       <div className="overflow-x-auto">
@@ -43,10 +43,10 @@ export default function StudentMarksPage({ params }) {
             </tr>
           </thead>
           <tbody>
-            {marks.map((mark) => (
+            {marks?.map((mark) => (  
               <tr key={mark.mark_id}>
                 <td className="px-4 py-2 border">{mark.assessment_type}</td>
-                <td className="px-4 py-2 border">{mark.score.toFixed(2)}</td>
+                <td className="px-4 py-2 border">{parseFloat(mark.score)?.toFixed(2) || 'N/A'}</td> 
               </tr>
             ))}
           </tbody>
@@ -54,4 +54,4 @@ export default function StudentMarksPage({ params }) {
       </div>
     </div>
   );
-} 
+}

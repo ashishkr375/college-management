@@ -14,20 +14,21 @@ export async function GET(request) {
 
     const summary = await executeQuery(`
       SELECT 
-        c.course_code,
-        c.course_name,
-        m.assessment_type,
-        m.marks,
-        m.created_at
+          c.course_code,
+          c.course_name,
+          m.assessment_type,
+          m.marks,
+          m.created_at
       FROM Students s
       JOIN Sections sec ON s.section_id = sec.section_id
       JOIN FacultyCourses fc ON sec.section_id = fc.section_id
       JOIN Courses c ON fc.course_id = c.course_id
       LEFT JOIN Marks m ON m.roll_number = s.roll_number 
-        AND m.course_code = c.course_code
+          AND m.course_code = c.course_code
       WHERE s.roll_number = ?
       ORDER BY c.course_name, m.assessment_type
-    `, [session.user.roll_number]);
+  `, [session.user.roll_number]);
+  
 
     // Organize data by course
     const marksByCourse = summary.reduce((acc, record) => {

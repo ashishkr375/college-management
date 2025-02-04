@@ -14,47 +14,78 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
-    const month = parseInt(searchParams.get('month'));
-    const year = parseInt(searchParams.get('year'));
+    const month = parseInt(searchParams.get('month'), 10);
+    const year = parseInt(searchParams.get('year'), 10);
 
-    // Get course code
-    const [course] = await executeQuery(
-      'SELECT course_code FROM Courses WHERE course_id = ?',
-      [courseId]
+    if (!courseId || isNaN(month) || isNaN(year)) {
+      return new Response(JSON.stringify({ error: 'Invalid request parameters' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const facultyCourses = await executeQuery(
+      `SELECT faculty_course_id 
+       FROM FacultyCourses 
+       WHERE course_id = ? 
+       AND section_id = (SELECT section_id FROM Students WHERE roll_number = ?)`,
+      [courseId, session.user.roll_number]
     );
 
-    // Get attendance records
+    if (!facultyCourses.length) {
+      return new Response(JSON.stringify({ error: 'Course not found or not enrolled' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const facultyCourseId = facultyCourses[0].faculty_course_id;
+
     const attendance = await executeQuery(`
-      SELECT date, status
+      SELECT 
+        attendance_id,
+        start_date,
+        end_date,
+        total_classes,
+        present_count,
+        remark
       FROM Attendance
-      WHERE roll_number = ?
-      AND course_code = ?
-      AND MONTH(date) = ?
-      AND YEAR(date) = ?
-      ORDER BY date
-    `, [session.user.roll_number, course.course_code, month, year]);
+      WHERE roll_number = ? 
+      AND faculty_course_id = ?
+      AND MONTH(start_date) = ? 
+      AND YEAR(start_date) = ?
+      ORDER BY start_date
+    `, [session.user.roll_number, facultyCourseId, month, year]);
 
     // Calculate monthly statistics
-    const stats = await executeQuery(`
+    const statsResult = await executeQuery(`
       SELECT 
-        COUNT(*) as total,
-        SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) as present,
-        SUM(CASE WHEN status = 'Absent' THEN 1 ELSE 0 END) as absent,
-        SUM(CASE WHEN status = 'On Leave' THEN 1 ELSE 0 END) as leave,
-        ROUND(
-          (SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) * 100.0) / 
-          COUNT(*)
-        ) as percentage
+        COALESCE(SUM(total_classes), 0) AS total_classes,
+        COALESCE(SUM(CASE WHEN present_count > 0 THEN present_count ELSE 0 END), 0) AS present_count,
+        COALESCE(SUM(CASE WHEN present_count = 0 THEN total_classes ELSE 0 END), 0) AS leave_count,
+        COALESCE(SUM(CASE WHEN present_count = -1 THEN total_classes ELSE 0 END), 0) AS absent_count
       FROM Attendance
-      WHERE roll_number = ?
-      AND course_code = ?
-      AND MONTH(date) = ?
-      AND YEAR(date) = ?
-    `, [session.user.roll_number, course.course_code, month, year]);
+      WHERE roll_number = ? 
+      AND faculty_course_id = ?
+      AND MONTH(start_date) = ? 
+      AND YEAR(start_date) = ?
+    `, [session.user.roll_number, facultyCourseId, month, year]);
+
+    const stats = statsResult.length ? statsResult[0] : { total_classes: 0, present_count: 0, leave_count: 0, absent_count: 0 };
+
+    const summary = {
+      total: stats.total_classes,
+      present: stats.present_count,
+      leave: stats.leave_count,
+      absent: stats.total_classes - stats.present_count - stats.leave_count,
+      percentage: stats.total_classes > 0 
+        ? ((stats.present_count / stats.total_classes) * 100).toFixed(2) 
+        : 0
+    };
 
     return new Response(JSON.stringify({
       attendance,
-      stats: stats[0]
+      stats: summary
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
@@ -66,4 +97,4 @@ export async function GET(request) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-} 
+}

@@ -13,17 +13,17 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const courseId = searchParams.get('courseId');
+    const FacultyCourseId = searchParams.get('faculty_course_id');
 
     // Get course_code
     const courseQuery = `
-      SELECT c.course_code
+      SELECT c.course_id
       FROM FacultyCourses fc
       JOIN Courses c ON fc.course_id = c.course_id
       WHERE fc.faculty_course_id = ?
       AND fc.faculty_id = ?
     `;
-    const courseResult = await executeQuery(courseQuery, [courseId, session.user.id]);
+    const courseResult = await executeQuery(courseQuery, [FacultyCourseId, session.user.id]);
     const courseCode = courseResult[0].course_code;
 
     const assessments = await executeQuery(`
@@ -35,7 +35,7 @@ export async function GET(request) {
       FROM Marks
       WHERE course_code = ?
       AND marked_by = ?
-      GROUP BY assessment_type, DATE(created_at)
+      GROUP BY assessment_type,created_at
       ORDER BY created_at DESC
     `, [courseCode, session.user.id]);
 

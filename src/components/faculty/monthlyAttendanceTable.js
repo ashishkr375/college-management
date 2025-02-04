@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button"; // Adjust path as needed
 import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
@@ -15,7 +15,7 @@ const MonthlyAttendanceTable = ({ students }) => {
     students.map((student) => ({
       rollNumber: student.roll_number,
       name: student.full_name,
-      totalPresent: "",
+      totalPresent: "0",
       absent: "",
       remark: "",
     }))
@@ -45,12 +45,47 @@ const MonthlyAttendanceTable = ({ students }) => {
 
     setAttendanceData(updatedData);
   };
- 
+
+  const fetchRecords = async (start_date, end_date) => {
+    try {
+      const response = await fetch(`/api/faculty/attendance/monthly?faculty_course_id=${params.courseId}&start_date=${start_date}&end_date=${end_date}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch attendance records");
+      }
+  
+      const updatedData = data.attendance.map((record) => ({
+        rollNumber: record.roll_number,
+        name: record.full_name,
+        totalPresent: record.present_count,
+        absent: record.total_classes - record.present_count,
+        remark: record.remark || "",
+        total_classes: record.total_classes,
+      }));
+      setTotalWorkingDays(updatedData[0].total_classes);
+
+      setAttendanceData(updatedData);
+    } catch (error) {
+      console.error("Error fetching attendance records:", error);
+      // toast.error("Failed to fetch attendance records. Please try again.");
+    }
+  };
+  
+  useEffect(() => {
+    if(startDate && endDate){
+      fetchRecords(startDate, endDate);
+    }
+  },[startDate,endDate]);
 
 
   const handleSave = async () => {
     if (!startDate || !endDate || !totalWorkingDays) {
-      toast.error("Please provide start date, end date, and total classes help");
+      toast.error("Please provide start date, end date, and total classes held");
       return;
     }
   
@@ -97,12 +132,14 @@ const MonthlyAttendanceTable = ({ students }) => {
   return (
     <div className="border rounded-lg p-4">
       <div className="flex space-x-4 mb-4">
+      <label className="block mb-1">From</label>
         <input
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
           className="border p-2 rounded w-full"
         />
+        <label className="block mb-1">To</label>
         <input
           type="date"
           value={endDate}

@@ -23,7 +23,7 @@ import {
   FileQuestion
 } from 'lucide-react';
 import { format } from 'date-fns';
-
+import { Loader2 } from 'lucide-react';
 export default function CourseMaterials() {
   const params = useParams();
   const { data: session } = useSession();

@@ -25,7 +25,7 @@ export default function AttendancePage() {
   const params = useParams();
   const { data: session } = useSession();
   const { toast } = useToast();
-  const [mode, setMode] = useState('daily');
+  const [mode, setMode] = useState('monthly'); // daily, monthly
   const [date, setDate] = useState(new Date());
   const [isDateDialogOpen, setIsDateDialogOpen] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
@@ -51,8 +51,14 @@ export default function AttendancePage() {
     }
   }, [session]);
 
+  // useEffect(() => {
+  //   if (date && mode === 'daily') {
+  //     fetchAttendance();
+  //   }
+  // }, [date]);
+
   useEffect(() => {
-    if (date && mode === 'daily') {
+    if (date && mode === 'monthly') {
       fetchAttendance();
     }
   }, [date]);
@@ -424,18 +430,18 @@ export default function AttendancePage() {
           <h1 className="text-3xl font-bold">Attendance</h1>
           
           <div className="flex gap-4">
-            <Button 
+            {/* <Button 
               variant={mode === 'daily' ? 'default' : 'outline'}
               onClick={() => setMode('daily')}
             >
               Daily
-            </Button>
-            <Button 
+            </Button> */}
+            {/* <Button 
               variant={mode === 'monthly' ? 'default' : 'outline'}
               onClick={() => setMode('monthly')}
             >
               Monthly
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -561,7 +567,8 @@ export default function AttendancePage() {
 <div className="mt-8">
               <h2 className="text-xl font-semibold mb-4">Previous Attendance Records</h2>
               <div className="grid grid-cols-4 gap-4">
-              {attendanceDates.map((record, index) => (
+              {attendanceDates.map((record, index) => 
+              record.start_date === record.end_date ? (
                 <Button
                   key={`${record.start_date}-${index}`}
                   variant="outline"
@@ -578,7 +585,7 @@ export default function AttendancePage() {
                     year: 'numeric',
                   })}
                 </Button>
-              ))}
+              ):null)}
               </div>
             </div>
           </div>
@@ -615,6 +622,7 @@ export default function AttendancePage() {
               )}
             </Button> */}
             <MonthlyAttendanceTable students={students} />
+            
           </div>
         )}
         
