@@ -13,17 +13,16 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const courseId = searchParams.get('courseId');
+    const faculty_course_id = searchParams.get('faculty_course_id');  // ✅ Correct query param
 
-    // Get course_code for the faculty_course_id
+    // Get course_id for the faculty_course_id
     const courseQuery = `
-      SELECT c.course_code
-      FROM FacultyCourses fc
-      JOIN Courses c ON fc.course_id = c.course_id
-      WHERE fc.faculty_course_id = ?
-      AND fc.faculty_id = ?
+      SELECT course_id 
+      FROM FacultyCourses 
+      WHERE faculty_course_id = ? 
+      AND faculty_id = ?
     `;
-    const courseResult = await executeQuery(courseQuery, [courseId, session.user.id]);
+    const courseResult = await executeQuery(courseQuery, [faculty_course_id, session.user.id]);
 
     if (courseResult.length === 0) {
       return new Response(JSON.stringify({ error: 'Course not found' }), {
@@ -32,19 +31,20 @@ export async function GET(request) {
       });
     }
 
-    const courseCode = courseResult[0].course_code;
+    const course_id = courseResult[0].course_id;
 
-    // Get distinct dates for this course with count of attendance records
+    // Get distinct attendance dates with total records
     const dates = await executeQuery(`
       SELECT 
-        DATE_FORMAT(date, '%Y-%m-%d') as date,
-        COUNT(*) as record_count
+        DATE_FORMAT(start_date, '%Y-%m-%d') AS start_date,
+        DATE_FORMAT(end_date, '%Y-%m-%d') AS end_date,
+        COUNT(*) AS record_count
       FROM Attendance
-      WHERE course_code = ?
-      AND marked_by = ?
-      GROUP BY date
-      ORDER BY date DESC
-    `, [courseCode, session.user.id]);
+      WHERE course_id = ?
+      AND faculty_course_id = ?
+      GROUP BY start_date, end_date
+      ORDER BY start_date DESC
+    `, [course_id, faculty_course_id]);
 
     return new Response(JSON.stringify(dates), {
       status: 200,
@@ -57,4 +57,4 @@ export async function GET(request) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-} 
+}

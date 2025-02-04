@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
-
+const STUDENTS_PER_PAGE = 10;
 export default function MarksPage() {
   const params = useParams();
   const { data: session } = useSession();
@@ -74,7 +74,7 @@ export default function MarksPage() {
 
   async function fetchPreviousAssessments() {
     try {
-      const response = await fetch(`/api/faculty/marks/assessments?courseId=${params.courseId}`);
+      const response = await fetch(`/api/faculty/marks/assessments?faculty_course_id=${params.courseId}`);
       if (!response.ok) throw new Error('Failed to fetch previous assessments');
       const data = await response.json();
       
@@ -184,6 +184,7 @@ export default function MarksPage() {
 
       // Refresh the marks and assessments
       await fetchPreviousAssessments();
+      // setCurrentPage(1);
       await fetchMarks();
       setIsEditing(false);
     } catch (error) {

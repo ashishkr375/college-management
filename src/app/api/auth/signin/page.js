@@ -4,6 +4,7 @@ import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+// import Sign_in_page from '@/components/signin';
 
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +33,7 @@ export default function SignIn() {
   };
 
   return (
+    // <Sign_in_page />
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
         <div className="text-center">

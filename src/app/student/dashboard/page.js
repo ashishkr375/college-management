@@ -126,19 +126,19 @@ export default function StudentDashboard() {
                   <p className="text-xl font-bold">{course.materials_count}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Marks</p>
+                  <p className="text-sm font-medium">Latest Marks</p>
                   <p className="text-xl font-bold">{course.latest_marks || '-'}</p>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="flex justify-end gap-2 pt-2">
-                <Link href={`/student/attendance/${course.course_id}`}>
+                {/* <Link href={`/student/attendance/${course.course_id}`}>
                   <Button variant="outline" size="sm">
                     <Calendar className="h-4 w-4 mr-2" />
                     Attendance
                   </Button>
-                </Link>
+                </Link> */}
                 <Link href={`/student/marks/${course.course_id}`}>
                   <Button variant="outline" size="sm">
                     <LineChart className="h-4 w-4 mr-2" />

@@ -15,7 +15,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account.provider === "google") {
         try {
           console.log('Checking user access for email:', user.email);
@@ -25,12 +25,11 @@ export const authOptions = {
             'SELECT faculty_id, is_dept_admin, full_name FROM Faculty WHERE email = ?',
             [user.email]
           );
-
+          
           console.log('Faculty check result:', faculty);
 
           if (faculty) {
-            // Store these in user object for jwt callback
-            user.role = faculty.is_dept_admin ? 'dept_admin' : 'faculty';
+            user.role = faculty.is_dept_admin === 1 ? 'dept_admin' : 'faculty';
             user.id = faculty.faculty_id;
             user.name = faculty.full_name;
             return true;
@@ -71,18 +70,23 @@ export const authOptions = {
       return false;
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token }) {
       console.log('JWT Callback - Incoming token:', token);
-      console.log('JWT Callback - Incoming user:', user);
+      try {
+        // Refresh user details from the database on every request
+        if (token.id && token.role === 'student') {
+          const [student] = await executeQuery(
+            'SELECT student_id, roll_number, full_name FROM Students WHERE email = ?',
+            [token.email]
+          );
 
-      if (user) {
-        // Transfer the role and id from signIn callback
-        token.role = user.role;
-        token.id = user.id;
-        // Add roll_number to token if user is a student
-        if (user.role === 'student') {
-          token.roll_number = user.roll_number;
+          if (student) {
+            token.roll_number = student.roll_number;
+            token.name = student.full_name;
+          }
         }
+      } catch (error) {
+        console.error('Error fetching fresh user data:', error);
       }
 
       console.log('JWT Callback - Outgoing token:', token);
@@ -91,12 +95,11 @@ export const authOptions = {
 
     async session({ session, token }) {
       console.log('Session Callback - Incoming session:', session);
-      console.log('Session Callback - Incoming token:', token);
 
       if (token) {
         session.user.role = token.role;
         session.user.id = token.id;
-        // Add roll_number to session if user is a student
+        session.user.name = token.name;
         if (token.role === 'student') {
           session.user.roll_number = token.roll_number;
         }
@@ -117,4 +120,4 @@ export const authOptions = {
   debug: true, // Enable debug logs
 };
 
-export default NextAuth(authOptions); 
+export default NextAuth(authOptions);
