@@ -22,8 +22,10 @@ export default function MarksPage() {
   const { toast } = useToast();
   const [students, setStudents] = useState([]);
   const [marks, setMarks] = useState({});
+  const [draftMarks, setDraftMarks] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState('Class Test');
   const [isEditing, setIsEditing] = useState(false);
   const [previousAssessments, setPreviousAssessments] = useState([]);
@@ -77,7 +79,7 @@ export default function MarksPage() {
       const response = await fetch(`/api/faculty/marks/assessments?faculty_course_id=${params.courseId}`);
       if (!response.ok) throw new Error('Failed to fetch previous assessments');
       const data = await response.json();
-      
+
       // Group assessments by type with dates
       const groupedAssessments = data.reduce((acc, record) => {
         if (!acc[record.assessment_type]) {
@@ -90,7 +92,7 @@ export default function MarksPage() {
         });
         return acc;
       }, {});
-      
+
       setAssessmentHistory(groupedAssessments);
     } catch (error) {
       console.error('Error:', error);
@@ -109,7 +111,7 @@ export default function MarksPage() {
       );
       if (!response.ok) throw new Error('Failed to fetch marks');
       const data = await response.json();
-      
+
       // Create a map of student marks
       const marksMap = {};
       data.forEach(record => {
@@ -199,6 +201,66 @@ export default function MarksPage() {
     }
   }
 
+  // Function for handling save as draft
+  async function handleSaveAsDraft(e) {
+    e.preventDefault();
+    setIsSavingDraft(true);
+  
+    try {
+      const marksData = Object.entries(marks)
+        .filter(([_, mark]) => mark && mark.toString().trim() !== '')
+        .map(([roll_number, mark]) => ({
+          roll_number,
+          marks: parseFloat(mark),
+          assessment_type: selectedAssessment,
+          status: 'draft', // Mark as draft
+        }));
+  
+      if (marksData.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please enter marks for at least one student",
+          variant: "destructive",
+        });
+        return;
+      }
+  
+      const response = await fetch('/api/faculty/marks/draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId: params.courseId,
+          marks: marksData,
+        }),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to save marks as draft');
+      }
+  
+      toast({
+        title: "Success",
+        description: "Marks saved as draft successfully",
+      });
+  
+      setDraftMarks(marksData); // Save the marks as drafts
+    } catch (error) {
+      console.error('Error saving marks as draft:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save marks as draft",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }
+  
+
   // Function to load specific assessment record
   async function loadAssessmentRecord(type, date) {
     try {
@@ -207,7 +269,7 @@ export default function MarksPage() {
       );
       if (!response.ok) throw new Error('Failed to fetch assessment record');
       const data = await response.json();
-      
+
       setMarks(data.marks);
       setSelectedRecord({ type, date });
       setIsEditing(false);
@@ -234,7 +296,7 @@ export default function MarksPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Marks Management</h1>
-          
+
           <div className="flex items-center gap-4">
             <Select value={selectedAssessment} onValueChange={setSelectedAssessment}>
               <SelectTrigger className="w-[180px]">
@@ -293,9 +355,9 @@ export default function MarksPage() {
           {(isEditing || Object.keys(marks).length === 0) && (
             <div className="mt-6 flex justify-end gap-4">
               {isEditing && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => {
                     setIsEditing(false);
                     fetchMarks();
@@ -304,6 +366,17 @@ export default function MarksPage() {
                   Cancel
                 </Button>
               )}
+              <Button type="button" onClick={handleSaveAsDraft} disabled={isSavingDraft}>
+                {isSavingDraft ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save As Draft'
+                )}
+              </Button>
+
               <Button type="submit" disabled={isSaving}>
                 {isSaving ? (
                   <>
@@ -331,9 +404,9 @@ export default function MarksPage() {
                       key={index}
                       variant="outline"
                       className={
-                        selectedRecord?.type === type && 
-                        selectedRecord?.date.getTime() === record.date.getTime() 
-                          ? 'border-primary' 
+                        selectedRecord?.type === type &&
+                          selectedRecord?.date.getTime() === record.date.getTime()
+                          ? 'border-primary'
                           : ''
                       }
                       onClick={() => loadAssessmentRecord(type, record.date)}
@@ -404,5 +477,4 @@ export default function MarksPage() {
       </div>
     </div>
   );
-} 
- 
+}

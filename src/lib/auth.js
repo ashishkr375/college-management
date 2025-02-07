@@ -72,8 +72,8 @@ export const authOptions = {
     },
 
     async jwt({ token, user }) {
-      console.log('JWT Callback - Incoming token:', token);
-      console.log('JWT Callback - Incoming user:', user);
+      // console.log('JWT Callback - Incoming token:', token);
+      // console.log('JWT Callback - Incoming user:', user);
 
       if (user) {
         // Transfer the role and id from signIn callback
@@ -85,13 +85,13 @@ export const authOptions = {
         }
       }
 
-      console.log('JWT Callback - Outgoing token:', token);
+      // console.log('JWT Callback - Outgoing token:', token);
       return token;
     },
 
     async session({ session, token }) {
-      console.log('Session Callback - Incoming session:', session);
-      console.log('Session Callback - Incoming token:', token);
+      // console.log('Session Callback - Incoming session:', session);
+      // console.log('Session Callback - Incoming token:', token);
 
       if (token) {
         session.user.role = token.role;
@@ -102,7 +102,7 @@ export const authOptions = {
         }
       }
 
-      console.log('Session Callback - Outgoing session:', session);
+      // console.log('Session Callback - Outgoing session:', session);
       return session;
     },
   },
