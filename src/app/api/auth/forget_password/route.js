@@ -49,11 +49,11 @@ export async function POST(request) {
     }
 
     const userQuery = `
-      SELECT 'superadmin' AS role, id, email FROM superadmin WHERE email = ?
+      SELECT 'superadmin' AS role, id, email FROM SuperAdmin WHERE email = ?
       UNION ALL
-      SELECT 'faculty' AS role, faculty_id, email FROM faculty WHERE email = ?
+      SELECT 'faculty' AS role, faculty_id, email FROM Faculty WHERE email = ?
       UNION ALL
-      SELECT 'students' AS role, student_id, email FROM students WHERE email = ?
+      SELECT 'students' AS role, student_id, email FROM Students WHERE email = ?
       LIMIT 1;
     `;
 

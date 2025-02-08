@@ -192,7 +192,14 @@ async function createTables() {
         FOREIGN KEY (roll_number) REFERENCES Students(roll_number),
         FOREIGN KEY (course_code) REFERENCES Courses(course_code),
         FOREIGN KEY (marked_by) REFERENCES Faculty(faculty_id)
-      )`
+      )`,
+      `CREATE TABLE otp (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        otp VARCHAR(20) NOT NULL,
+        expires_at DATETIME NOT NULL
+      )`,
+
     ];
 
     // Execute each CREATE TABLE query separately
