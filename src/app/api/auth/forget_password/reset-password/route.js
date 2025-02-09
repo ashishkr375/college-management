@@ -22,11 +22,11 @@ export async function POST(req) {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     const userQuery = `
-      SELECT 'superadmin' AS role, id, email FROM superadmin WHERE email = ?
+      SELECT 'superadmin' AS role, id, email FROM SuperAdmin WHERE email = ?
       UNION ALL
-      SELECT 'faculty' AS role, faculty_id, email FROM faculty WHERE email = ?
+      SELECT 'faculty' AS role, faculty_id, email FROM Faculty WHERE email = ?
       UNION ALL
-      SELECT 'students' AS role, student_id, email FROM students WHERE email = ?
+      SELECT 'students' AS role, student_id, email FROM Students WHERE email = ?
       LIMIT 1;
     `;
 
@@ -48,11 +48,11 @@ export async function POST(req) {
       let values = [hashedPassword, email];
 
       if (role === 'students') {
-        updatePasswordQuery = `UPDATE students SET password = ? WHERE email = ?`;
+        updatePasswordQuery = `UPDATE Students SET password = ? WHERE email = ?`;
       } else if (role === 'faculty') {
-        updatePasswordQuery = `UPDATE faculty SET password = ? WHERE email = ?`;
+        updatePasswordQuery = `UPDATE Faculty SET password = ? WHERE email = ?`;
       } else if (role === 'superadmin') {
-        updatePasswordQuery = `UPDATE superadmin SET password = ? WHERE email = ?`;
+        updatePasswordQuery = `UPDATE SuperAdmin SET password = ? WHERE email = ?`;
       }
 
       if (updatePasswordQuery) {
