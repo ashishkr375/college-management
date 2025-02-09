@@ -133,7 +133,7 @@ export default function StudentDashboard() {
 
               {/* Action Buttons */}
               <div className="flex justify-end gap-2 pt-2">
-                {/* <Link href={`/student/attendance/${course.course_id}`}>
+               {/* <Link href={`/student/attendance/${course.course_id}`}>
                   <Button variant="outline" size="sm">
                     <Calendar className="h-4 w-4 mr-2" />
                     Attendance
