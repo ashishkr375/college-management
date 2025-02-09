@@ -29,7 +29,10 @@ export default function ForgotPasswordPage() {
 
         const data = await response.json();
         setMessage(data.message);
-
+        if(data.error){
+            window.confirm(data.error)
+        }
+        
         if (response.ok) {
             setTimeout(() => router.push(`/auth/forgotPassword/verify?email=${email}`), 3000);
         }
