@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { Card } from '@/components/ui/card';
 import { Users, ClipboardList, BookOpen } from 'lucide-react';
 import Link from 'next/link';
-
+import { signOut } from "next-auth/react";
 export default function FacultyDashboard() {
   const { data: session } = useSession();
   const [assignments, setAssignments] = useState([]);
@@ -34,6 +34,11 @@ export default function FacultyDashboard() {
 
   return (
     <div className="p-6 space-y-6">
+      <div className="inline-flex w-auto rounded-md bg-rose-600 justify-end items-end text-white px-4 py-2 font-bold hover:bg-rose-700">
+        <button onClick={() => signOut()} className="hover:bg-rose-700">
+          Log Out
+        </button>
+      </div>
       <h1 className="text-3xl font-bold">My Courses</h1>
       
       <div className="grid grid-cols-1 gap-6">
