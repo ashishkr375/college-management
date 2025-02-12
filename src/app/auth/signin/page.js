@@ -50,6 +50,8 @@ export default function SignInPage() {
         router.push("/faculty/dashboard");
       } else if (session?.user?.role === "student") {
         router.push("/student/dashboard");
+      }else if(session?.user?.role === "dept_admin"){
+        router.push("/admin/dept-admin/dashboard")
       }
     }
     setIsLoading(false);
@@ -68,7 +70,7 @@ export default function SignInPage() {
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Welcome to Student Portal
+            Welcome to NIT Patna Portal
           </h2>
           <p className="mt-2 text-sm text-gray-600">Sign in with your credentials</p>
         </div>

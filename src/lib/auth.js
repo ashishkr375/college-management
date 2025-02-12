@@ -24,7 +24,7 @@ export const authOptions = {
             LIMIT 1;
           `;
           const result = await executeQuery(userQuery, [email, email, email]);
-
+          
           if (result.length === 0) {
             return null;
           }

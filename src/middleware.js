@@ -73,6 +73,6 @@ export const config = {
     '/admin/:path*',
     '/faculty/:path*',
     '/student/:path*',
-    '/api/auth/signin'
+    // '/api/auth/signin'
   ]
 }; 
