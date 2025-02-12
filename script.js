@@ -187,6 +187,7 @@ async function createTables() {
         assessment_type VARCHAR(225) NOT NULL,
         marks DECIMAL(5,2) NOT NULL,
         marked_by INT NOT NULL,
+        status VARCHAR(6) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE KEY unique_mark (roll_number, course_code, assessment_type),
         FOREIGN KEY (roll_number) REFERENCES Students(roll_number),
@@ -212,6 +213,7 @@ async function createTables() {
     const initialDataQueries = [
       // Insert Super Admin
       `INSERT INTO SuperAdmin (admin_id, full_name, email) 
+
        VALUES ('SA001', 'Super Admin', 'superAdmin@nitp.ac.in')`,
 
       // Insert department
@@ -220,11 +222,11 @@ async function createTables() {
 
       // Insert faculty member as department admin
       `INSERT INTO Faculty (employee_id, full_name, email, dept_id, is_dept_admin) 
-       VALUES ('CSE001', 'Admin User', 'kumarashish98526@gmail.com', 1, 1)`,
+       VALUES ('CSE001', 'Anshu Kant', 'kantjhaanshu007@gmail.com', 1, 0)`,
 
       // Insert regular faculty member
       `INSERT INTO Faculty (employee_id, full_name, email, dept_id, is_dept_admin) 
-       VALUES ('CSE002', 'Faculty User', 'kumarashish80832@gmail.com', 1, 0)`,
+       VALUES ('CSE002', 'Faculty User', 'aaa@gmail.com', 1, 0)`,
 
       // Insert a programme
       `INSERT INTO Programmes (programme_name, level, dept_id) 
@@ -240,7 +242,7 @@ async function createTables() {
 
       // Insert a student
       `INSERT INTO Students (roll_number, full_name, email, section_id) 
-       VALUES ('2022CSB001', 'student123', 'vasu123@gmail.com', 1)`
+       VALUES ('2022CSB001', 'student123', 'anshuj.ug23.cs@nitp.ac.in', 1)`
     ];
 
     // Execute each INSERT query separately

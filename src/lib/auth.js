@@ -93,11 +93,25 @@ export const authOptions = {
           token.roll_number = user.roll_number;
         }
       }
-      console.log('Outgoing JWT Token:', token);
       return token;
     },
 
     async session({ session, token }) {
+// <<<<<<< master
+//       // console.log('Session Callback - Incoming session:', session);
+//       // console.log('Session Callback - Incoming token:', token);
+
+//       if (token) {
+//         session.user.role = token.role;
+//         session.user.id = token.id;
+//         // Add roll_number to session if user is a student
+//         if (token.role === 'student') {
+//           session.user.roll_number = token.roll_number;
+//         }
+//       }
+
+      // console.log('Session Callback - Outgoing session:', session);
+// =======
       session.user = session.user || {};
       session.user.role = token.role;
       session.user.id = token.id;
@@ -108,6 +122,7 @@ export const authOptions = {
 
       console.log('Incoming Session:', session);
       console.log('Outgoing Session:', { user: session.user });
+// >>>>>>> master
       return session;
     },
   },

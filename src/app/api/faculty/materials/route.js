@@ -26,7 +26,7 @@ export async function GET(request) {
       });
     }
     const res=await executeQuery(`
-      SELECT course_id from facultycourses where faculty_course_id = ?
+      SELECT course_id from FacultyCourses where faculty_course_id = ?
       `,[facultyCourseId])
     const courseId=res[0].course_id;
 
@@ -66,7 +66,7 @@ export async function POST(request) {
     const description = formData.get("description")
     const facultyCourseId = formData.get("courseId")
     const res=await executeQuery(`
-      SELECT course_id from facultycourses where faculty_course_id = ?
+      SELECT course_id from FacultyCourses where faculty_course_id = ?
       `,[facultyCourseId])
     const courseId=res[0].course_id;
     if (!file) {

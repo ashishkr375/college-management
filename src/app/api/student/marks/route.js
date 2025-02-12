@@ -28,7 +28,8 @@ export async function GET(request) {
         created_at
       FROM Marks
       WHERE roll_number = ?
-      AND course_code = ?
+      AND course_code = ? 
+      AND status = 'final'
       ORDER BY created_at DESC
     `, [session.user.roll_number, course.course_code]);
 

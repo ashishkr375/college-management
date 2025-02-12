@@ -30,6 +30,7 @@ export async function GET(request) {
         FROM Marks m 
         WHERE m.roll_number =?
         AND m.course_code = c.course_code 
+        AND m.status = 'final'
         ORDER BY m.created_at DESC 
         LIMIT 1
     ) AS latest_marks

@@ -28,7 +28,7 @@ export async function GET(request, { params }) {
             ELSE 0  -- Handles unexpected assessment types
         END AS weight
     FROM Marks m
-    WHERE m.roll_number = ? AND m.course_code = ?
+    WHERE m.roll_number = ? AND m.course_code = ? AND m.status = 'final'
     ORDER BY m.assessment_type
 `;
 

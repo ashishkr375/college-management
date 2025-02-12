@@ -87,18 +87,20 @@ export async function POST(request) {
         if (mark.marks) { // Only insert if marks are provided
           await executeQuery(`
             INSERT INTO Marks (
-              roll_number,
-              course_code,
-              assessment_type,
-              marks,
-              marked_by
-            ) VALUES (?, ?, ?, ?, ?)
-          `, [
+                roll_number,
+                course_code,
+                assessment_type,
+                marks,
+                marked_by,
+                status
+              ) VALUES (?, ?, ?, ?, ?, ?)
+            `, [
             mark.roll_number,
             courseCode,
             mark.assessment_type,
             mark.marks,
-            session.user.id
+            session.user.id,
+            'final', // Status is 'final' for saved marks
           ]);
         }
       }
