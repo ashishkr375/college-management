@@ -1,26 +1,31 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { title } from 'process';
 import { getSession } from 'next-auth/react';
-import { toast } from 'react-toastify';
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const validateEmail = (email) => {
+    const regex = /^[a-zA-Z0-9._%+-]+@nitp\.ac\.in$/;
+    return regex.test(email);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    const validateEmail = (email) => {
-      const regex = /^[a-zA-Z0-9._%+-]+@nitp\.ac\.in$/;
-      return regex.test(email);
-    };
     if (!validateEmail(email)) {
       toast.error("Only nitp email's are allowed!", {
         position: "top-right",
@@ -30,47 +35,38 @@ export default function SignInPage() {
       setIsLoading(false);
       return;
     }
+
     const result = await signIn('credentials', {
       email,
       password,
       redirect: false,
     });
-    console.log('SignIn Result:', result);
+
     if (result.error) {
       setError(result.error);
-    }
-    else {
-      // Fetch the session to get user details
-      const session = await getSession();
-      console.log("Session:", session);
-  
-      if (session?.user?.role === "super_admin") {
-        router.push("/admin/super-admin/dashboard");
-      } else if (session?.user?.role === "faculty") {
-        router.push("/faculty/dashboard");
-      } else if (session?.user?.role === "student") {
-        router.push("/student/dashboard");
-      }else if(session?.user?.role === "dept_admin"){
-        router.push("/admin/dept-admin/dashboard")
-      }
-    }
+    } 
+     else {
+          const session = await getSession();
+          console.log("Session:", session);
+      
+          if (session?.user?.role === "super_admin") {
+            router.push("/admin/super-admin/dashboard");
+          } else if (session?.user?.role === "faculty") {
+            router.push("/faculty/dashboard");
+          } else if (session?.user?.role === "student") {
+            router.push("/student/dashboard");
+          }else if(session?.user?.role === "dept_admin"){
+            router.push("/admin/dept-admin/dashboard")
+          }
+        }
     setIsLoading(false);
   };
-
-  // useEffect(()=>{
-  //   if(session){
-  //     console.log(session,'session')
-  //   }else{
-  //     console.log("no session")
-  //   }
-  // },[])
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Welcome to NIT Patna Portal
+            Welcome to NIt Patna Portal
           </h2>
           <p className="mt-2 text-sm text-gray-600">Sign in with your credentials</p>
         </div>

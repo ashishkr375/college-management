@@ -1,120 +1,143 @@
 import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { executeQuery } from './db';
+import bcrypt from 'bcryptjs';
 
 export const authOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      authorization: {
-        params: {
-          prompt: "select_account"
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        const { email, password } = credentials;
+
+        try {
+          const userQuery = `
+            SELECT 'faculty' AS role, faculty_id AS id, full_name FROM Faculty WHERE email = ? 
+            UNION ALL 
+            SELECT 'super_admin' AS role, id AS id, full_name FROM SuperAdmin WHERE email = ? 
+            UNION ALL 
+            SELECT 'student' AS role, student_id AS id, full_name FROM Students WHERE email = ?
+            LIMIT 1;
+          `;
+          const result = await executeQuery(userQuery, [email, email, email]);
+          
+          if (result.length === 0) {
+            return null;
+          }
+
+          const user = result[0];
+
+          const passwordQuery = `
+            SELECT password FROM ${user.role === 'faculty' ? 'Faculty' : user.role === 'super_admin' ? 'SuperAdmin' : 'Students'} WHERE email = ?;
+          `;
+          const passwordResult = await executeQuery(passwordQuery, [email]);
+
+          if (passwordResult.length === 0 || !bcrypt.compareSync(password, passwordResult[0].password)) {
+            return null;
+          }
+
+          if (user.role === 'faculty') {
+            const deptAdminQuery = `SELECT is_dept_admin FROM Faculty WHERE email = ?;`;
+            const deptAdminResult = await executeQuery(deptAdminQuery, [email]);
+
+            if (deptAdminResult.length > 0 && deptAdminResult[0].is_dept_admin === 1) {
+              user.role = 'dept_admin';
+            }
+          }
+
+          if (user.role === 'student') {
+            const studentQuery = `SELECT roll_number FROM Students WHERE student_id = ?;`;
+            const studentResult = await executeQuery(studentQuery, [user.id]);
+
+            if (studentResult.length > 0) {
+              user.roll_number = studentResult[0].roll_number;
+            }
+          }
+
+          return {
+            id: user.id,
+            email,
+            name: user.full_name,
+            role: user.role,
+            roll_number: user.roll_number || null,
+          };
+        } catch (error) {
+          console.error('Error during authentication', error);
+          return null;
         }
-      }
+      },
     }),
   ],
+
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account.provider === "google") {
-        try {
-          console.log('Checking user access for email:', user.email);
-
-          // Check for faculty/dept admin first
-          const [faculty] = await executeQuery(
-            'SELECT faculty_id, is_dept_admin, full_name FROM Faculty WHERE email = ?',
-            [user.email]
-          );
-
-          console.log('Faculty check result:', faculty);
-
-          if (faculty) {
-            // Store these in user object for jwt callback
-            user.role = faculty.is_dept_admin ? 'dept_admin' : 'faculty';
-            user.id = faculty.faculty_id;
-            user.name = faculty.full_name;
-            return true;
-          }
-
-          // Check for super admin
-          const [superAdmin] = await executeQuery(
-            'SELECT * FROM SuperAdmin WHERE email = ?',
-            [user.email]
-          );
-
-          if (superAdmin) {
-            user.role = 'super_admin';
-            return true;
-          }
-
-          // Check for student
-          const [student] = await executeQuery(
-            'SELECT student_id, roll_number, full_name FROM Students WHERE email = ?',
-            [user.email]
-          );
-
-          if (student) {
-            user.role = 'student';
-            user.id = student.student_id;
-            user.name = student.full_name;
-            user.roll_number = student.roll_number;
-            return true;
-          }
-
-          console.log('No matching user found in database');
-          return false;
-        } catch (error) {
-          console.error('Error in signIn callback:', error);
-          return false;
-        }
+    async signIn({ user }) {
+      if (user) {
+        console.log('Incoming Sign-In User:', user);
+        return true;
       }
+      console.log('Sign-In failed: No user found');
       return false;
     },
 
     async jwt({ token, user }) {
-      // console.log('JWT Callback - Incoming token:', token);
-      // console.log('JWT Callback - Incoming user:', user);
-
       if (user) {
-        // Transfer the role and id from signIn callback
+        console.log('Incoming JWT User:', user);
         token.role = user.role;
         token.id = user.id;
-        // Add roll_number to token if user is a student
+        token.name = user.name;
         if (user.role === 'student') {
           token.roll_number = user.roll_number;
         }
       }
-
-      // console.log('JWT Callback - Outgoing token:', token);
       return token;
     },
 
     async session({ session, token }) {
-      // console.log('Session Callback - Incoming session:', session);
-      // console.log('Session Callback - Incoming token:', token);
+// <<<<<<< master
+//       // console.log('Session Callback - Incoming session:', session);
+//       // console.log('Session Callback - Incoming token:', token);
 
-      if (token) {
-        session.user.role = token.role;
-        session.user.id = token.id;
-        // Add roll_number to session if user is a student
-        if (token.role === 'student') {
-          session.user.roll_number = token.roll_number;
-        }
-      }
+//       if (token) {
+//         session.user.role = token.role;
+//         session.user.id = token.id;
+//         // Add roll_number to session if user is a student
+//         if (token.role === 'student') {
+//           session.user.roll_number = token.roll_number;
+//         }
+//       }
 
       // console.log('Session Callback - Outgoing session:', session);
+// =======
+      session.user = session.user || {};
+      session.user.role = token.role;
+      session.user.id = token.id;
+      session.user.name = token.name;
+      if (token.role === 'student') {
+        session.user.roll_number = token.roll_number;
+      }
+
+      console.log('Incoming Session:', session);
+      console.log('Outgoing Session:', { user: session.user });
+// >>>>>>> master
       return session;
     },
   },
+
   pages: {
-    signIn: '/auth/signin',
+    signIn: '/api/auth/signin',
     error: '/auth/error',
   },
+
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 24 * 60 * 60, // 1 day
   },
-  debug: true, // Enable debug logs
+
+  debug: true,
 };
 
 export default NextAuth(authOptions);

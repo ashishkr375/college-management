@@ -29,10 +29,10 @@ export default function StudentMarksPage({ params }) {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Course Marks</h1>
 
-      <div className="mb-6 p-4 bg-gray-100 rounded">
+      {/* <div className="mb-6 p-4 bg-gray-100 rounded">
         <h3 className="font-semibold">Total Score</h3>
         <p className="text-2xl">{parseFloat(total)?.toFixed(2)}/100</p>
-      </div>
+      </div> */}
 
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border">

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-
+import { signOut } from 'next-auth/react';
 export default function StudentDashboard() {
   const { data: session } = useSession();
   const { toast } = useToast();
@@ -94,7 +94,11 @@ export default function StudentDashboard() {
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold">Dashboard</h1>
-
+      <div className="inline-flex w-auto rounded-md bg-rose-600 justify-end items-end text-white px-4 py-2 font-bold hover:bg-rose-700">
+              <button onClick={() => signOut()} className="hover:bg-rose-700">
+                Log Out
+              </button>
+            </div>
       {/* Course Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
@@ -133,7 +137,7 @@ export default function StudentDashboard() {
 
               {/* Action Buttons */}
               <div className="flex justify-end gap-2 pt-2">
-                {/* <Link href={`/student/attendance/${course.course_id}`}>
+               {/* <Link href={`/student/attendance/${course.course_id}`}>
                   <Button variant="outline" size="sm">
                     <Calendar className="h-4 w-4 mr-2" />
                     Attendance

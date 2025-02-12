@@ -53,6 +53,7 @@ async function createTables() {
         admin_id VARCHAR(20) UNIQUE NOT NULL,
         full_name VARCHAR(100) NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
+        password VARCHAR(255) Null,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`,
 
@@ -71,6 +72,7 @@ async function createTables() {
         email VARCHAR(100) UNIQUE NOT NULL,
         dept_id INT NOT NULL,
         is_dept_admin BOOLEAN DEFAULT FALSE,
+        password VARCHAR(255) Null,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)
       )`,
@@ -121,6 +123,7 @@ async function createTables() {
         full_name VARCHAR(100) NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
         section_id INT NOT NULL,
+        password VARCHAR(255) Null,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (section_id) REFERENCES Sections(section_id)
       )`,
@@ -190,7 +193,14 @@ async function createTables() {
         FOREIGN KEY (roll_number) REFERENCES Students(roll_number),
         FOREIGN KEY (course_code) REFERENCES Courses(course_code),
         FOREIGN KEY (marked_by) REFERENCES Faculty(faculty_id)
-      )`
+      )`,
+      `CREATE TABLE otp (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        otp VARCHAR(20) NOT NULL,
+        expires_at DATETIME NOT NULL
+      )`,
+
     ];
 
     // Execute each CREATE TABLE query separately
@@ -203,7 +213,8 @@ async function createTables() {
     const initialDataQueries = [
       // Insert Super Admin
       `INSERT INTO SuperAdmin (admin_id, full_name, email) 
-       VALUES ('SA001', 'AnshuKant', 'anushg0827@gmail.com')`,
+
+       VALUES ('SA001', 'Super Admin', 'superAdmin@nitp.ac.in')`,
 
       // Insert department
       `INSERT INTO Departments (dept_name) 
